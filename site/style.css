@@ -1,0 +1,213 @@
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    html,
+    body {
+        height: 100%;
+    }
+    
+    body {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+    }
+    /* /////////////////////////////////// flex container presntation */
+    
+    #presentation,
+    #maison,
+    #histoire,
+    #relation {
+        flex-direction: column;
+        padding: 10px;
+    }
+    
+    h2 {
+        margin-top: 20px;
+        margin-bottom: 40px;
+        font-size: 64px;
+        color: rgb(213, 54, 32);
+        text-shadow: 2px 2px 6px rgba(255, 165, 0, 0.8);
+    }
+    
+    .info-item img {
+        max-height: 100px;
+    }
+    
+    .lore {
+        width: 70%;
+        background-color: RGB(0, 0, 0, 70%);
+        color: #f0f0f0;
+        padding: 15px;
+        font-size: 25px;
+        font-weight: 400;
+        text-align: initial;
+        border-radius: 30px;
+    }
+    
+    h3 {
+        margin-top: 20px;
+        margin-bottom: 40px;
+        font-size: 40px;
+        color: rgb(213, 54, 32);
+        text-decoration: underline;
+        text-transform: uppercase;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    
+    #banner {
+        background: linear-gradient(to top, #151e8a, rgb(213, 54, 32));
+        z-index: 514;
+    }
+    
+    #map {
+        z-index: 512;
+        top: 100vh
+    }
+    
+    #val {
+        z-index: 510;
+    }
+    
+    #home {
+        z-index: 508;
+        background-image: url(../zProject.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100% 100%;
+    }
+    
+    #presentation {
+        background-color: #151e8a;
+        z-index: 506;
+    }
+    
+    #maison {
+        background-image: url(../solderme.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100% 100%;
+        z-index: 504;
+    }
+    
+    #histoire {
+        background-image: url(../hist.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100% 100%;
+        z-index: 502;
+    }
+    
+    #relation {
+        background-image: url(../ck3_prince_1920x1080.jpg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100% 100%;
+        z-index: 500;
+    }
+    
+    #map,
+    #val,
+    #home,
+    #presentation,
+    #maison,
+    #histoire,
+    #relation {
+        top: 0;
+        right: 0;
+        top: 200vh;
+    }
+    
+    .container {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        scroll-snap-align: start;
+        flex-direction: column;
+        object-fit: cover;
+        border: #151e8a;
+        border-bottom: 0px solid #151e8a;
+        border-top: 1px solid #151e8a;
+        overflow: hidden;
+        box-shadow: inset 0 0 150px 20px rgba(21, 30, 138, 0.9), 0 0 150px 20px rgba(21, 30, 138, 0.7), 0 0 150px 20px rgba(21, 30, 138, 0.7), 0 0 150px 20px rgba(21, 30, 138, 0.7);
+        /* Ombre épaisse appliquée en permanence */
+        z-index: 1;
+    }
+    
+    .container ::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        background: linear-gradient(45deg, #151e8a, #00f, #00f, #151e8a);
+        background-size: 400%;
+        z-index: -1;
+        border-radius: 18px;
+    }
+    
+    .container img {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .flex-container img {
+        height: auto;
+        width: auto;
+    }
+    
+    .info-container {
+        flex: 0 0 80%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        padding: 10px;
+    }
+    
+    .info-item {
+        flex: 0 0 20%;
+        display: flex;
+        align-items: center;
+        text-align: initial;
+        color: rgb(255, 165, 0);
+        font-weight: 700;
+        margin: 5px 0;
+        font-size: 40px;
+    }
+    
+    .flex-container {
+        display: flex;
+        justify-content: space-around;
+        width: 80%;
+        height: 70vh;
+    }
+    
+    .image-container {
+        flex: 0 0 30%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .flex-container img {
+        height: auto;
+        width: auto;
+    }
+    
+    .image-container img {
+        height: 123.5%;
+        width: auto;
+    }
+    
+    #baral {
+        border-radius: 30px;
+        margin: 20px;
+    }
+    
+    u {
+        text-decoration: none;
+        color: rgb(213, 54, 32);
+    }
