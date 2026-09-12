@@ -6,7 +6,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'greywater-watch',
     coords: [46.10370875598025, -124.6435546875],
-    name: 'Fort-la-Latt (Greywater Watch)',
+    name: 'Fort-Griseaux (Greywater Watch)',
     region: 'Le Neck',
     category: 'château',
     house: 'Maison Reed',
@@ -114,7 +114,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'oldcastle',
     coords: [51.75424007403352, -109.5263671875],
-    name: 'Vieux-Château (Oldcastle)',
+    name: 'Châteauvieux (Oldcastle)',
     region: 'Le Nord',
     category: 'château',
     house: 'Maison Locke',
@@ -297,7 +297,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'strongsong',
     coords: [36.84446074079564, -108.9111328125],
-    name: 'Chant-de-l\'Air (Strongsong)',
+    name: 'Fortchant (Strongsong)',
     region: 'Le Val d\'Arryn',
     category: 'château',
     house: 'Maison Belmore',
@@ -333,10 +333,10 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'wickenden',
     coords: [20.83827780605893, -96.0791015625],
-    name: 'Wickenden',
+    name: 'Combemèche (Wickenden)',
     region: 'Le Val d\'Arryn',
     category: 'château',
-    house: 'Maison Cirier (Waxley)',
+    house: 'Maison Cirley (Waxley)',
     sigilUrl: HOUSE_SIGILS.arryn || HOUSE_SIGILS.generic,
     words: 'Brille dans les ténèbres',
     description:
@@ -351,17 +351,17 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'coldwater-burn',
     coords: [45.05800143539829, -95.0244140625],
-    name: 'Brûlance (Coldwater Burn)',
+    name: 'La Brûlée-Froideseaux (Coldwater Burn)',
     region: 'Le Val d\'Arryn',
     category: 'château',
-    house: 'Maison Froideau (Coldwater)',
+    house: 'Maison Froideseaux (Coldwater)',
     sigilUrl: HOUSE_SIGILS.arryn || HOUSE_SIGILS.generic,
     words: 'Froid et Tranchant',
     description:
-      'Forteresse septentrionale du Val bâtie à l\'embouchure de la rivière torrentielle de Brûlance, surveillant les abords des Doigts et de la Baie des Morsures.',
+      'Forteresse septentrionale du Val bâtie à l\'embouchure de la rivière des Froideseaux, surveillant les abords des Doigts et de la Baie des Morsures.',
     features: [
       'Tour de guet côtière face aux tempêtes de la mer Grelotte',
-      'Pont fortifié enjambant la rivière tumultueuse de Brûlance',
+      'Pont fortifié enjambant la rivière tumultueuse des Froideseaux',
       'Mines de grès et carrières de pierre de construction',
       'Garnison de cavaliers montagnards patrouillant les crêtes'
     ]
@@ -369,7 +369,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'snakewood',
     coords: [41.80407814427234, -93.0908203125],
-    name: 'Bois-Serpent (Snakewood)',
+    name: 'Guivrebois (Snakewood)',
     region: 'Le Val d\'Arryn',
     category: 'château',
     house: 'Maison Lynderly',
@@ -424,7 +424,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'gulltown',
     coords: [29.42046034101313, -84.2138671875],
-    name: 'Goëtte (Gulltown)',
+    name: 'Goëville (Gulltown)',
     region: 'Le Val d\'Arryn',
     category: 'ville',
     house: 'Maison Grafton',
@@ -571,7 +571,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'stone-hedge',
     coords: [24.36711356265077, -123.0139160156],
-    name: 'Haie-Corneille (Stone Hedge)',
+    name: 'Haye-Pierre (Stone Hedge)',
     region: 'Le Conflans',
     category: 'château',
     house: 'Maison Bracken',
@@ -643,7 +643,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'maidenpool',
     coords: [17.64402202787272, -101.748046875],
-    name: 'Pucellerie (Maidenpool)',
+    name: 'Viergétang (Maidenpool)',
     region: 'Le Conflans',
     category: 'château',
     house: 'Maison Mouton (Mooton)',
@@ -661,7 +661,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'oldstones',
     coords: [30.92107637538487, -126.4013671875],
-    name: 'Vieux-Pierres (Oldstones)',
+    name: 'Vieilles-Pierres (Oldstones)',
     region: 'Le Conflans',
     category: 'ruine',
     house: 'Anciens Rois des Rivières (Mudd)',
@@ -1096,7 +1096,7 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'antlers',
     coords: [9.71960249823617, -107.05078125],
-    name: 'Les Bois (Antlers)',
+    name: 'Les Épois (Antlers)',
     region: 'Terres de la Couronne',
     category: 'château',
     house: 'Maison Buckwell',
@@ -1114,10 +1114,10 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'dyre-den',
     coords: [21.20745873048264, -87.158203125],
-    name: 'Val-la-Brune (Dyre Den)',
+    name: 'Combebrune (Dyre Den)',
     region: 'Terres de la Couronne',
     category: 'château',
-    house: 'Maison Brune de Val-la-Brune',
+    house: 'Maison Brune de Combebrune',
     sigilUrl: HOUSE_SIGILS.generic || HOUSE_SIGILS.generic,
     words: 'Fidèles à la terre',
     description:
@@ -1132,10 +1132,10 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: 'hayford',
     coords: [3.469557303061473, -106.9775390625],
-    name: 'Hayford',
+    name: 'Fengué (Hayford)',
     region: 'Terres de la Couronne',
     category: 'château',
-    house: 'Maison Hayford',
+    house: 'Maison Fengué',
     sigilUrl: HOUSE_SIGILS.generic || HOUSE_SIGILS.generic,
     words: 'Inébranlable',
     description:
