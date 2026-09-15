@@ -4,15 +4,15 @@ import 'leaflet/dist/leaflet.css';
 import type { MapModeFilter, PointOfInterest } from '../../types';
 import { QuartermaesterTileLayer, type TileStyle } from './QuartermaesterTileLayer';
 import { createCustomMarkerIcon } from './markerIcons';
-import { BookOpen, Compass, Layers, Maximize2, Sparkles, ZoomIn, ZoomOut } from 'lucide-react';
+import { BookOpen, Compass, Layers, Maximize2, Sparkles, ZoomIn, ZoomOut, PenTool, Undo, Trash2 } from 'lucide-react';
 
 interface MapComponentProps {
   points: PointOfInterest[];
   selectedPoint: PointOfInterest | null;
   onSelectPoint: (point: PointOfInterest | null) => void;
   onRequestAddPoint?: (coords: [number, number]) => void;
-  activeMode: MapModeFilter;
-  onChangeMode: (mode: MapModeFilter) => void;
+  mapFilters: Record<string, boolean>;
+  onFilterChange: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 export const MapComponent: React.FC<MapComponentProps> = ({
@@ -20,8 +20,8 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   selectedPoint,
   onSelectPoint,
   onRequestAddPoint,
-  activeMode,
-  onChangeMode
+  mapFilters,
+  onFilterChange
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -33,6 +33,13 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   const [tileStyle, setTileStyle] = useState<TileStyle>('nat');
   const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [currentZoom, setCurrentZoom] = useState<number>(3);
+
+  // État de l'outil de dessin
+  const [isDrawingMode, setIsDrawingMode] = useState<boolean>(false);
+  const [drawnPath, setDrawnPath] = useState<[number, number][]>([]);
+  const isDrawingModeRef = useRef(isDrawingMode);
+  isDrawingModeRef.current = isDrawingMode;
+  const polylineRef = useRef<L.Polyline | null>(null);
 
   // Initialisation de la carte Leaflet
   useEffect(() => {
@@ -74,10 +81,13 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       setCurrentZoom(map.getZoom());
     });
 
-    // Clic en dehors des marqueurs désélectionne le point
-    map.on('click', () => {
-      // Si on clique sur le fond de carte
-      // Note: les marqueurs interceptent leur propre clic
+    // Clic sur le fond de carte (pour le dessin)
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      if (isDrawingModeRef.current) {
+        const lat = parseFloat(e.latlng.lat.toFixed(3));
+        const lng = parseFloat(e.latlng.lng.toFixed(3));
+        setDrawnPath(prev => [...prev, [lat, lng]]);
+      }
     });
 
     // Clic droit sur la carte pour proposer d'ajouter un lieu à ces coordonnées
@@ -94,6 +104,36 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       mapInstanceRef.current = null;
     };
   }, []);
+
+  // Application du style curseur pour le mode dessin
+  useEffect(() => {
+    if (isDrawingMode) {
+      mapContainerRef.current?.classList.add('drawing-mode');
+    } else {
+      mapContainerRef.current?.classList.remove('drawing-mode');
+    }
+  }, [isDrawingMode]);
+
+  // Rendu de la ligne dessinée (Polyline)
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    if (polylineRef.current) {
+      map.removeLayer(polylineRef.current);
+    }
+
+    if (drawnPath.length > 0) {
+      polylineRef.current = L.polyline(drawnPath, {
+        color: '#e53e3e', // Rouge "tracé"
+        weight: 3,
+        opacity: 0.85,
+        dashArray: '8, 8', // Ligne pointillée
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+    }
+  }, [drawnPath]);
 
   // Changement de style de tuiles (avec légendes vs naturel)
   useEffect(() => {
@@ -121,14 +161,16 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       const isSelected = selectedPoint?.id === point.id;
       const existingMarker = markersRef.current.get(point.id);
 
+      const cleanName = point.name.replace(/\s*\(.*?\)\s*/g, '').trim();
+      
       const pointSource = point.source || 'lore';
       if (existingMarker) {
         // Mettre à jour l'icône (pour état sélectionné / non-sélectionné)
-        existingMarker.setIcon(createCustomMarkerIcon(point.category, isSelected, point.name, pointSource));
+        existingMarker.setIcon(createCustomMarkerIcon(point.category, point.region, isSelected, cleanName, pointSource));
         existingMarker.setZIndexOffset(isSelected ? 1000 : 0);
       } else {
         // Créer un nouveau marqueur
-        const icon = createCustomMarkerIcon(point.category, isSelected, point.name, pointSource);
+        const icon = createCustomMarkerIcon(point.category, point.region, isSelected, cleanName, pointSource);
         const marker = L.marker(point.coords, {
           icon,
           riseOnHover: true
@@ -152,7 +194,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           : '';
         marker.bindTooltip(`
           <div class="got-tooltip-content">
-            <strong>${point.name}</strong>
+            <strong>${cleanName}</strong>
             <span class="got-tooltip-category">${sourceBadgeHtml}${point.category.toUpperCase()} • ${point.region}</span>
           </div>
         `, {
@@ -198,7 +240,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   return (
-    <div className="map-wrapper">
+    <div className={`map-wrapper zoom-${currentZoom}`}>
       {/* Conteneur Leaflet */}
       <div ref={mapContainerRef} className="map-canvas" id="map_canvas" />
 
@@ -227,44 +269,76 @@ export const MapComponent: React.FC<MapComponentProps> = ({
             title="Vue d'ensemble de Westeros"
             aria-label="Vue d'ensemble"
           >
-            <Maximize2 size={16} />
+            <Compass size={18} />
           </button>
         </div>
 
-        {/* Sélecteur de carte : Carte Lore (Naturelle) vs Carte AGOT+ (Naturelle) vs Légendes d'origine */}
-        <div className="control-group map-universe-group">
+        {/* Outils de Dessin */}
+        <div className="control-group drawing-group">
           <button
-            type="button"
-            className={`map-btn universe-btn ${activeMode === 'lore' && tileStyle === 'nat' ? 'active lore-active' : ''}`}
-            onClick={() => {
-              setTileStyle('nat');
-              onChangeMode('lore');
-            }}
-            title="Carte Lore : Fond naturel avec les bookmarks certifiés de Westeros"
+            className={`map-btn ${isDrawingMode ? 'active' : ''}`}
+            onClick={() => setIsDrawingMode(!isDrawingMode)}
+            title="Tracer un itinéraire"
+            aria-label="Tracer"
           >
-            <BookOpen size={14} />
-            <span>Carte Lore</span>
+            <PenTool size={18} color={isDrawingMode ? '#e53e3e' : 'currentColor'} />
           </button>
+          {drawnPath.length > 0 && (
+            <>
+              <button
+                className="map-btn"
+                onClick={() => setDrawnPath(prev => prev.slice(0, -1))}
+                title="Annuler le dernier point"
+                aria-label="Annuler"
+              >
+                <Undo size={18} />
+              </button>
+              <button
+                className="map-btn"
+                onClick={() => setDrawnPath([])}
+                title="Effacer le tracé"
+                aria-label="Effacer"
+              >
+                <Trash2 size={18} color="#e53e3e" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Menu des Filtres de la Carte */}
+        <div className="control-group map-checklist-group">
+          <div className="checklist-title">Afficher sur la carte :</div>
+          <label className="checklist-item">
+            <input type="checkbox" checked={mapFilters['château-majeur']} onChange={(e) => onFilterChange(prev => ({...prev, 'château-majeur': e.target.checked}))} />
+            <span>Châteaux Majeurs</span>
+          </label>
+          <label className="checklist-item">
+            <input type="checkbox" checked={mapFilters['château-mineur']} onChange={(e) => onFilterChange(prev => ({...prev, 'château-mineur': e.target.checked}))} />
+            <span>Châteaux Mineurs</span>
+          </label>
+          <label className="checklist-item">
+            <input type="checkbox" checked={mapFilters['ville']} onChange={(e) => onFilterChange(prev => ({...prev, 'ville': e.target.checked}))} />
+            <span>Villes</span>
+          </label>
+          <div className="checklist-separator"></div>
+          <label className="checklist-item">
+            <input type="checkbox" checked={mapFilters['centre-savoir']} onChange={(e) => onFilterChange(prev => ({...prev, 'centre-savoir': e.target.checked}))} />
+            <span>Centres de Savoir</span>
+          </label>
+          <label className="checklist-item">
+            <input type="checkbox" checked={mapFilters['hotdPlus']} onChange={(e) => onFilterChange(prev => ({...prev, hotdPlus: e.target.checked}))} />
+            <span>HotD+ (Extension)</span>
+          </label>
+          
+          <div className="checklist-separator"></div>
           <button
             type="button"
-            className={`map-btn universe-btn ${activeMode === 'agot_plus' && tileStyle === 'nat' ? 'active agot-active' : ''}`}
-            onClick={() => {
-              setTileStyle('nat');
-              onChangeMode('agot_plus');
-            }}
-            title="Carte AGOT+ : Fond naturel avec les bookmarks étendus et personnalisés"
-          >
-            <Sparkles size={14} />
-            <span>Carte AGOT+</span>
-          </button>
-          <button
-            type="button"
-            className={`map-btn universe-btn ${tileStyle === 'fsm' ? 'active fsm-active' : ''}`}
-            onClick={() => setTileStyle('fsm')}
-            title="Carte d'origine manuscrite avec légendes Quartermaester"
+            className={`map-btn toggle-style-btn ${tileStyle === 'fsm' ? 'active' : ''}`}
+            onClick={() => setTileStyle(prev => prev === 'nat' ? 'fsm' : 'nat')}
+            title="Basculer entre la carte Naturelle et la carte avec Légendes"
           >
             <Layers size={14} />
-            <span>Légendes</span>
+            <span>Légendes de la carte</span>
           </button>
         </div>
 
@@ -275,35 +349,38 @@ export const MapComponent: React.FC<MapComponentProps> = ({
             <span>Sauter vers :</span>
           </div>
           <div className="region-pills">
-            <button
-              onClick={() => handleQuickJump([76.26, -106.7], 4)}
-              className="quick-region-pill"
-            >
+            <button onClick={() => handleQuickJump([76.26, -106.69], 4)} className="quick-region-pill">
               Le Mur
             </button>
-            <button
-              onClick={() => handleQuickJump([66.24, -123.3], 4)}
-              className="quick-region-pill"
-            >
+            <button onClick={() => handleQuickJump([66.24, -123.32], 4)} className="quick-region-pill">
               Winterfell
             </button>
-            <button
-              onClick={() => handleQuickJump([1.31, -105.99], 4)}
-              className="quick-region-pill"
-            >
+            <button onClick={() => handleQuickJump([22.28, -128.29], 4)} className="quick-region-pill">
+              Vivesaigues
+            </button>
+            <button onClick={() => handleQuickJump([31.76, -102.49], 4)} className="quick-region-pill">
+              Les Eyrié
+            </button>
+            <button onClick={() => handleQuickJump([27.74, -150.61], 4)} className="quick-region-pill">
+              Pyk
+            </button>
+            <button onClick={() => handleQuickJump([6.31, -151.36], 4)} className="quick-region-pill">
+              Castral Roc
+            </button>
+            <button onClick={() => handleQuickJump([1.31, -105.99], 4)} className="quick-region-pill">
               Port-Réal
             </button>
-            <button
-              onClick={() => handleQuickJump([-43.58, -84.56], 4)}
-              className="quick-region-pill"
-            >
-              Dorne
+            <button onClick={() => handleQuickJump([-23.96, -138.35], 4)} className="quick-region-pill">
+              Hautjardin
             </button>
-            <button
-              onClick={() => handleQuickJump([6.31, -151.36], 4)}
-              className="quick-region-pill"
-            >
-              Castral Roc
+            <button onClick={() => handleQuickJump([-16.17, -91.86], 4)} className="quick-region-pill">
+              Accalmie
+            </button>
+            <button onClick={() => handleQuickJump([-43.58, -84.56], 4)} className="quick-region-pill">
+              Lancehélion
+            </button>
+            <button onClick={() => handleQuickJump([43.92, -59.78], 4)} className="quick-region-pill">
+              Braavos
             </button>
           </div>
         </div>

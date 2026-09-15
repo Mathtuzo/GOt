@@ -1,4 +1,4 @@
-export type CategoryType = 'château' | 'ville' | 'ruine' | 'lieu-dit';
+export type CategoryType = 'château-majeur' | 'château-mineur' | 'ville' | 'ruine' | 'lieu-dit' | 'centre-savoir';
 
 export type PointSource = 'lore' | 'agot_plus';
 export type MapModeFilter = 'lore' | 'agot_plus' | 'all';
@@ -11,7 +11,8 @@ export interface PointOfInterest {
   category: CategoryType;
   source?: PointSource; // 'lore' par défaut ou 'agot_plus'
   house?: string;
-  sigilUrl?: string;
+  sigilKey?: string;
+  imageUrl?: string; // Lien personnalisé vers une image du lieu
   words?: string;
   description: string;
   features: string[];

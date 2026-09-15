@@ -1,24 +1,30 @@
 import React from 'react';
 import type { PointOfInterest } from '../../types';
-import { ArrowLeft, Castle, Building2, Flame, MapPin, Navigation, Shield, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Castle, Building2, Flame, MapPin, Navigation, Shield, CheckCircle2, Edit3, BookOpen } from 'lucide-react';
+import { HOUSE_SIGILS } from '../../data/sigils';
 
 interface PoiDetailProps {
   point: PointOfInterest;
   onBack: () => void;
   onCenterMap: (coords: [number, number]) => void;
+  onEdit: (point: PointOfInterest) => void;
 }
 
 export const PoiDetail: React.FC<PoiDetailProps> = ({
   point,
   onBack,
-  onCenterMap
+  onCenterMap,
+  onEdit
 }) => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'château':
-        return <Castle size={16} />;
+      case 'château-majeur':
+      case 'château-mineur':
+        return <Castle size={18} />;
       case 'ville':
-        return <Building2 size={16} />;
+        return <Building2 size={18} />;
+      case 'centre-savoir':
+        return <BookOpen size={18} />;
       case 'ruine':
         return <Flame size={16} />;
       default:
@@ -35,14 +41,26 @@ export const PoiDetail: React.FC<PoiDetailProps> = ({
           <span>Retour à l'exploration</span>
         </button>
 
-        <button
-          onClick={() => onCenterMap(point.coords)}
-          className="center-map-btn"
-          title="Centrer la carte sur ce point"
-        >
-          <Navigation size={15} />
-          <span>Centrer la carte</span>
-        </button>
+        <div className="detail-actions-right" style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => onEdit(point)}
+            className="edit-map-btn"
+            title="Éditer ce lieu"
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: '1px solid rgba(255,255,255,0.2)', padding: '6px 10px', borderRadius: '4px', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px' }}
+          >
+            <Edit3 size={15} />
+            <span>Éditer</span>
+          </button>
+          
+          <button
+            onClick={() => onCenterMap(point.coords)}
+            className="center-map-btn"
+            title="Centrer la carte sur ce point"
+          >
+            <Navigation size={15} />
+            <span>Centrer</span>
+          </button>
+        </div>
       </div>
 
       {/* En-tête du lieu */}
@@ -71,15 +89,18 @@ export const PoiDetail: React.FC<PoiDetailProps> = ({
       </div>
 
       {/* Blason & Devise de la Maison */}
-      {(point.sigilUrl || point.words) && (
+      {(point.imageUrl || point.sigilKey || point.words) && (
         <div className="detail-heraldry-card">
           <div className="heraldry-inner">
-            {point.sigilUrl && (
-              <div className="sigil-large-container">
+            {/* Affichage de l'image personnalisée OU du blason */}
+            {(point.imageUrl || (point.sigilKey && HOUSE_SIGILS[point.sigilKey])) && (
+              <div className="sigil-large-container" style={{ width: point.imageUrl ? '100px' : undefined, height: point.imageUrl ? '100px' : undefined, overflow: 'hidden', borderRadius: point.imageUrl ? '8px' : undefined }}>
                 <img
-                  src={point.sigilUrl}
-                  alt={`Armoiries de ${point.house || point.name}`}
+                  src={point.imageUrl ? point.imageUrl : HOUSE_SIGILS[point.sigilKey!]}
+                  alt={`Illustration ou Armoiries de ${point.house || point.name}`}
                   className="sigil-large"
+                  referrerPolicy="no-referrer"
+                  style={{ objectFit: point.imageUrl ? 'cover' : undefined, width: '100%', height: '100%' }}
                 />
               </div>
             )}

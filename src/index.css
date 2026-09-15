@@ -974,13 +974,11 @@ h1, h2, h3, h4, .brand-name, .section-title, .poi-name, .detail-title {
   color: var(--gold-light);
 }
 
-.style-group,
-.map-universe-group {
+.style-group {
   flex-direction: row;
 }
 
-.style-btn,
-.universe-btn {
+.style-btn {
   width: auto;
   height: 32px;
   padding: 0 10px;
@@ -990,23 +988,8 @@ h1, h2, h3, h4, .brand-name, .section-title, .poi-name, .detail-title {
   border-right: 1px solid var(--border-card);
 }
 
-.style-btn:last-child,
-.universe-btn:last-child {
+.style-btn:last-child {
   border-right: none;
-}
-
-.universe-btn.lore-active {
-  background: rgba(212, 175, 55, 0.22);
-  color: var(--gold-light);
-  font-weight: 600;
-  box-shadow: inset 0 0 8px rgba(212, 175, 55, 0.3);
-}
-
-.universe-btn.agot-active {
-  background: rgba(159, 122, 234, 0.25);
-  color: #e9d8fd;
-  font-weight: 600;
-  box-shadow: inset 0 0 8px rgba(159, 122, 234, 0.35);
 }
 
 .universe-btn.fsm-active {
@@ -1103,6 +1086,14 @@ h1, h2, h3, h4, .brand-name, .section-title, .poi-name, .detail-title {
   border: none;
 }
 
+/* Échelle des icônes selon le niveau de zoom */
+.zoom-6 .custom-got-marker { transform: scale(1); }
+.zoom-5 .custom-got-marker { transform: scale(0.85); }
+.zoom-4 .custom-got-marker { transform: scale(0.65); }
+.zoom-3 .custom-got-marker { transform: scale(0.5); }
+.zoom-2 .custom-got-marker { transform: scale(0.35); }
+.zoom-1 .custom-got-marker { transform: scale(0.2); }
+
 .custom-got-marker {
   position: relative;
   width: 28px;
@@ -1111,29 +1102,63 @@ h1, h2, h3, h4, .brand-name, .section-title, .poi-name, .detail-title {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transform-origin: center center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .marker-symbol {
   width: 28px;
   height: 28px;
   background: var(--marker-bg);
-  border: 2px solid var(--marker-border);
+  border: 1.5px solid var(--marker-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 0 8px var(--marker-glow);
+  /* Effet "Pâteux" (peinture épaisse / cire) */
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.4), /* Reflet de lumière en haut à gauche */
+    inset -2px -3px 4px rgba(0, 0, 0, 0.3),     /* Ombre interne en bas à droite */
+    1px 2px 3px rgba(0, 0, 0, 0.4);             /* Légère ombre portée sur la carte */
+  mix-blend-mode: normal; /* La peinture épaisse est opaque */
+  opacity: 0.95;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
 
-/* 1. Carré pour les Châteaux */
-.custom-got-marker.shape-square .marker-symbol {
-  border-radius: 4px;
+.custom-got-marker:hover .marker-symbol {
+  mix-blend-mode: normal;
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 8px var(--marker-glow);
+}
+
+.custom-got-marker.marker-selected .marker-symbol {
+  mix-blend-mode: normal;
+  opacity: 1;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.7), 0 0 12px var(--marker-glow);
+}
+
+/* 1a. Carré pour les Châteaux Majeurs */
+.custom-got-marker.shape-square-major .marker-symbol {
+  border-radius: 12% 8% 15% 10%;
+  transform: scale(1.2); /* Augmentation de 20% */
+}
+
+/* 1b. Carré pour les Châteaux Mineurs */
+.custom-got-marker.shape-square-minor .marker-symbol {
+  border-radius: 10% 12% 8% 15%;
+  /* Pas de scale pour les mineurs, taille standard 28px */
+}
+
+/* Centre de Savoir */
+.custom-got-marker.shape-book .marker-symbol {
+  border-radius: 15% 10% 20% 15%;
 }
 
 /* 2. Rond pour les Villes */
 .custom-got-marker.shape-circle .marker-symbol {
-  border-radius: 50%;
+  /* Rond "goutte" imparfait */
+  border-radius: 48% 52% 45% 55% / 55% 45% 50% 50%;
+  transform: scale(1.75); /* Augmentation de 75% */
 }
 
 /* 3. Croix pour les Ruines */
@@ -1859,4 +1884,93 @@ h1, h2, h3, h4, .brand-name, .section-title, .poi-name, .detail-title {
   .quick-regions-dropdown {
     display: none; /* Masqué sur très petits écrans */
   }
+}
+
+/* ==========================================================================
+   CHECKLIST DES FILTRES DE LA CARTE
+   ========================================================================== */
+
+.map-checklist-group {
+  flex-direction: column;
+  padding: 8px 12px;
+  gap: 6px;
+  background: rgba(10, 14, 22, 0.95);
+  min-width: 180px;
+}
+
+.checklist-title {
+  font-size: 0.75rem;
+  color: var(--gold-primary);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 4px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.checklist-item:hover {
+  color: var(--text-primary);
+}
+
+.checklist-item input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--gold-primary);
+}
+
+.checklist-separator {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 0;
+}
+
+.toggle-style-btn {
+  width: 100%;
+  height: 32px;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 4px;
+  border: none;
+  font-size: 0.8rem;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-style-btn:hover {
+  color: var(--gold-light);
+  background: rgba(212, 175, 55, 0.15);
+}
+
+.toggle-style-btn.active {
+  color: var(--gold-light);
+}
+
+/* ==========================================================================
+   OUTIL DE DESSIN (TRACÉ)
+   ========================================================================== */
+
+.drawing-mode,
+.drawing-mode .leaflet-interactive {
+  cursor: crosshair !important;
+}
+
+.drawing-group {
+  flex-direction: column;
+}
+
+.drawing-group .map-btn.active {
+  background: rgba(229, 62, 62, 0.15);
+  box-shadow: inset 2px 0 0 #e53e3e;
 }

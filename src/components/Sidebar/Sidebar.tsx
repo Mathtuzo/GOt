@@ -18,6 +18,7 @@ interface SidebarProps {
   loreCount: number;
   agotCount: number;
   onOpenAddPoint: () => void;
+  onEditPoint: (point: PointOfInterest) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedCategory: CategoryType | 'all';
@@ -39,6 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   loreCount,
   agotCount,
   onOpenAddPoint,
+  onEditPoint,
   searchQuery,
   onSearchChange,
   selectedCategory,
@@ -104,6 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             point={selectedPoint}
             onBack={() => onSelectPoint(null)}
             onCenterMap={onCenterMap}
+            onEdit={onEditPoint}
           />
         ) : (
           <div className="sidebar-exploration-mode">

@@ -2,48 +2,52 @@ import React, { useState, useEffect } from 'react';
 import type { CategoryType, PointOfInterest, PointSource } from '../../types';
 import { REGIONS } from '../../data/regions';
 import { HOUSE_SIGILS } from '../../data/sigils';
-import { X, MapPin, Sparkles, BookOpen, PlusCircle } from 'lucide-react';
+import { X, MapPin, Sparkles, BookOpen, Edit3 } from 'lucide-react';
 
-interface AddPointModalProps {
+interface EditPointModalProps {
   isOpen: boolean;
-  initialCoords?: [number, number] | null;
-  defaultSource?: PointSource;
+  point: PointOfInterest | null;
   onClose: () => void;
   onSave: (point: PointOfInterest) => void;
 }
 
-export const AddPointModal: React.FC<AddPointModalProps> = ({
+export const EditPointModal: React.FC<EditPointModalProps> = ({
   isOpen,
-  initialCoords,
-  defaultSource = 'agot_plus',
+  point,
   onClose,
   onSave
 }) => {
   const [name, setName] = useState('');
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
-  const [source, setSource] = useState<PointSource>(defaultSource);
+  const [source, setSource] = useState<PointSource>('lore');
   const [category, setCategory] = useState<CategoryType>('château-majeur');
   const [region, setRegion] = useState<string>(REGIONS[0]?.name || 'Le Conflans');
   const [house, setHouse] = useState('');
   const [words, setWords] = useState('');
   const [description, setDescription] = useState('');
   const [featuresText, setFeaturesText] = useState('');
+  const [sigilKey, setSigilKey] = useState<string>('generic');
   const [imageUrl, setImageUrl] = useState('');
 
-  // Synchroniser avec les coordonnées fournies à l'ouverture
   useEffect(() => {
-    if (initialCoords) {
-      setLat(initialCoords[0].toFixed(3));
-      setLng(initialCoords[1].toFixed(3));
-    } else {
-      setLat('25.000');
-      setLng('-120.000');
+    if (point && isOpen) {
+      setName(point.name);
+      setLat(point.coords[0].toString());
+      setLng(point.coords[1].toString());
+      setSource(point.source || 'lore');
+      setCategory(point.category);
+      setRegion(point.region);
+      setHouse(point.house || '');
+      setWords(point.words || '');
+      setDescription(point.description || '');
+      setFeaturesText(point.features ? point.features.join('\n') : '');
+      setSigilKey(point.sigilKey || 'generic');
+      setImageUrl(point.imageUrl || '');
     }
-    setSource(defaultSource);
-  }, [initialCoords, defaultSource, isOpen]);
+  }, [point, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !point) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,35 +57,25 @@ export const AddPointModal: React.FC<AddPointModalProps> = ({
     const parsedLng = parseFloat(lng);
     if (isNaN(parsedLat) || isNaN(parsedLng)) return;
 
-    const newPoint: PointOfInterest = {
-      id: `custom-${Date.now()}-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+    const updatedPoint: PointOfInterest = {
+      ...point,
       coords: [parsedLat, parsedLng],
       name: name.trim(),
       region,
       category,
       source,
       house: house.trim() ? house.trim() : undefined,
-      sigilKey: 'generic',
+      sigilKey: sigilKey,
       imageUrl: imageUrl.trim() ? imageUrl.trim() : undefined,
       words: words.trim() ? words.trim() : undefined,
-      description: description.trim()
-        ? description.trim()
-        : `Lieu créé par l'utilisateur dans l'univers ${source === 'lore' ? 'du Lore' : 'AGOT+'}.`,
+      description: description.trim(),
       features: featuresText.trim()
         ? featuresText.split('\n').map((f) => f.trim()).filter(Boolean)
-        : ['Lieu personnalisé']
+        : []
     };
 
-    onSave(newPoint);
+    onSave(updatedPoint);
     onClose();
-
-    // Reset du formulaire
-    setName('');
-    setHouse('');
-    setWords('');
-    setDescription('');
-    setFeaturesText('');
-    setImageUrl('');
   };
 
   return (
@@ -90,11 +84,11 @@ export const AddPointModal: React.FC<AddPointModalProps> = ({
         <div className="modal-header">
           <div className="modal-title-box">
             <div className="modal-icon-badge">
-              <PlusCircle size={20} />
+              <Edit3 size={20} />
             </div>
             <div>
-              <h2 className="modal-title">Ajouter un nouveau lieu</h2>
-              <p className="modal-subtitle">Définissez un point d'intérêt pour le Lore ou AGOT+</p>
+              <h2 className="modal-title">Éditer le lieu</h2>
+              <p className="modal-subtitle">Modifier les informations de {point.name}</p>
             </div>
           </div>
           <button
@@ -297,7 +291,7 @@ export const AddPointModal: React.FC<AddPointModalProps> = ({
               type="submit"
               className="btn btn-primary"
             >
-              Créer et placer sur la carte
+              Enregistrer les modifications
             </button>
           </div>
         </form>

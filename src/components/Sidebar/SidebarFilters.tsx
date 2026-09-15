@@ -1,7 +1,7 @@
 import React from 'react';
 import type { CategoryType } from '../../types';
 import { REGIONS } from '../../data/regions';
-import { Castle, Building2, Flame, MapPin, Sparkles } from 'lucide-react';
+import { Castle, Building2, Flame, MapPin, Sparkles, BookOpen } from 'lucide-react';
 
 interface SidebarFiltersProps {
   selectedCategory: CategoryType | 'all';
@@ -20,8 +20,10 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
 }) => {
   const categories: { id: CategoryType | 'all'; label: string; icon: React.ReactNode }[] = [
     { id: 'all', label: 'Tous', icon: <Sparkles size={14} /> },
-    { id: 'château', label: 'Châteaux', icon: <Castle size={14} /> },
+    { id: 'château-majeur', label: 'Châteaux Maj.', icon: <Castle size={14} /> },
+    { id: 'château-mineur', label: 'Châteaux Min.', icon: <Castle size={14} /> },
     { id: 'ville', label: 'Villes', icon: <Building2 size={14} /> },
+    { id: 'centre-savoir', label: 'Savoir', icon: <BookOpen size={14} /> },
     { id: 'ruine', label: 'Ruines', icon: <Flame size={14} /> },
     { id: 'lieu-dit', label: 'Lieux-dits', icon: <MapPin size={14} /> }
   ];

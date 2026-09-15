@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { POINTS_OF_INTEREST } from './data/points';
-import { AGOT_PLUS_INITIAL_POINTS } from './data/agotPlusPoints';
+import POINTS_OF_INTEREST from './data/points.json';
+import AGOT_PLUS_INITIAL_POINTS from './data/agotPlusPoints.json';
 import type { CategoryType, MapModeFilter, PointOfInterest } from './types';
 import { MapComponent } from './components/Map/MapComponent';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { AddPointModal } from './components/Modal/AddPointModal';
+import { EditPointModal } from './components/Modal/EditPointModal';
 import './index.css';
 
 const STORAGE_KEY = 'got_custom_points';
@@ -17,9 +18,23 @@ export function App() {
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
+  // Nouveaux filtres de la carte (cases à cocher)
+  const [mapFilters, setMapFilters] = useState<Record<string, boolean>>({
+    'château-majeur': true,
+    'château-mineur': true,
+    'ville': true,
+    'centre-savoir': false,
+    'ruine': true,
+    'lieu-dit': true,
+    'hotdPlus': false
+  });
+
   // État du modal d'ajout de point
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [modalCoords, setModalCoords] = useState<[number, number] | null>(null);
+
+  // État du modal d'édition
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
   // Points personnalisés stockés dans le navigateur
   const [customPoints, setCustomPoints] = useState<PointOfInterest[]>(() => {
@@ -42,12 +57,12 @@ export function App() {
 
   // Tous les points combinés avec leurs sources
   const allAvailablePoints = useMemo(() => {
-    const loreList: PointOfInterest[] = POINTS_OF_INTEREST.map((p) => ({
+    const loreList: PointOfInterest[] = (POINTS_OF_INTEREST as PointOfInterest[]).map((p) => ({
       ...p,
       source: 'lore' as const
     }));
 
-    const agotList: PointOfInterest[] = AGOT_PLUS_INITIAL_POINTS.map((p) => ({
+    const agotList: PointOfInterest[] = (AGOT_PLUS_INITIAL_POINTS as PointOfInterest[]).map((p) => ({
       ...p,
       source: 'agot_plus' as const
     }));
@@ -69,12 +84,17 @@ export function App() {
     return allAvailablePoints.filter((point) => {
       const pointSource = point.source || 'lore';
 
-      // Filtre univers de carte (Lore vs AGOT+)
-      if (activeMode !== 'all' && pointSource !== activeMode) {
+      // Filtre source (HotD+) via la checkbox
+      if (pointSource === 'agot_plus' && !mapFilters.hotdPlus) {
         return false;
       }
 
-      // Filtre catégorie
+      // Filtre catégorie par la checklist de la carte
+      if (mapFilters[point.category] === false) {
+        return false;
+      }
+
+      // Filtre catégorie de la sidebar (si défini)
       if (selectedCategory !== 'all' && point.category !== selectedCategory) {
         return false;
       }
@@ -106,7 +126,7 @@ export function App() {
 
       return true;
     });
-  }, [allAvailablePoints, activeMode, searchQuery, selectedCategory, selectedRegion]);
+  }, [allAvailablePoints, searchQuery, selectedCategory, selectedRegion, mapFilters]);
 
   // Support du hash dans l'URL (#@winterfell)
   useEffect(() => {
@@ -121,9 +141,13 @@ export function App() {
         );
         if (found) {
           setSelectedPoint(found);
-          // Si le point trouvé est d'un autre mode, basculer pour qu'il soit visible
-          if (activeMode !== 'all' && (found.source || 'lore') !== activeMode) {
-            setActiveMode('all');
+          // Si le point trouvé est du mod AGOT+, l'activer
+          if ((found.source === 'agot_plus') && !mapFilters.hotdPlus) {
+            setMapFilters(prev => ({ ...prev, hotdPlus: true }));
+          }
+          // Si sa catégorie est décochée, l'activer
+          if (mapFilters[found.category] === false) {
+            setMapFilters(prev => ({ ...prev, [found.category]: true }));
           }
           setIsSidebarCollapsed(false);
         }
@@ -163,13 +187,43 @@ export function App() {
   const handleSaveNewPoint = useCallback((newPoint: PointOfInterest) => {
     setCustomPoints((prev) => [newPoint, ...prev]);
     // S'assurer que le mode actif permet de voir le nouveau point
-    if (activeMode !== 'all' && newPoint.source !== activeMode) {
-      setActiveMode(newPoint.source || 'lore');
+    if (newPoint.source === 'agot_plus' && !mapFilters.hotdPlus) {
+      setMapFilters(prev => ({ ...prev, hotdPlus: true }));
+    }
+    if (mapFilters[newPoint.category] === false) {
+      setMapFilters(prev => ({ ...prev, [newPoint.category]: true }));
     }
     // Sélectionner automatiquement le nouveau point
     setSelectedPoint(newPoint);
     setIsSidebarCollapsed(false);
   }, [activeMode]);
+
+  // Déclencher l'édition d'un point
+  const handleRequestEditPoint = useCallback(() => {
+    setIsEditModalOpen(true);
+  }, []);
+
+  // Enregistrer l'édition d'un point
+  const handleSaveEditPoint = useCallback(async (updatedPoint: PointOfInterest) => {
+    try {
+      const res = await fetch('/api/save-point', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ point: updatedPoint })
+      });
+      if (res.ok) {
+        if (updatedPoint.id.startsWith('custom-')) {
+          setCustomPoints(prev => prev.map(p => p.id === updatedPoint.id ? updatedPoint : p));
+        }
+        setSelectedPoint(updatedPoint);
+        setIsEditModalOpen(false);
+      } else {
+        console.error("Erreur de sauvegarde :", await res.text());
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   return (
     <div className="app-layout">
@@ -185,6 +239,7 @@ export function App() {
         loreCount={loreCount}
         agotCount={agotCount}
         onOpenAddPoint={() => handleRequestAddPoint()}
+        onEditPoint={() => handleRequestEditPoint()}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         selectedCategory={selectedCategory}
@@ -202,8 +257,8 @@ export function App() {
           selectedPoint={selectedPoint}
           onSelectPoint={handleSelectPoint}
           onRequestAddPoint={handleRequestAddPoint}
-          activeMode={activeMode}
-          onChangeMode={setActiveMode}
+          mapFilters={mapFilters}
+          onFilterChange={setMapFilters}
         />
       </main>
 
@@ -214,6 +269,14 @@ export function App() {
         defaultSource={activeMode === 'agot_plus' ? 'agot_plus' : 'lore'}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleSaveNewPoint}
+      />
+
+      {/* Modal d'édition de point */}
+      <EditPointModal
+        isOpen={isEditModalOpen}
+        point={selectedPoint}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSaveEditPoint}
       />
     </div>
   );

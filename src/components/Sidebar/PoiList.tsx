@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PointOfInterest } from '../../types';
-import { Castle, Building2, Flame, MapPin, ChevronRight, Shield } from 'lucide-react';
+import { HOUSE_SIGILS } from '../../data/sigils';
+import { Castle, Building2, Flame, MapPin, ChevronRight, Shield, BookOpen } from 'lucide-react';
 
 interface PoiListProps {
   points: PointOfInterest[];
@@ -15,10 +16,13 @@ export const PoiList: React.FC<PoiListProps> = ({
 }) => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'château':
+      case 'château-majeur':
+      case 'château-mineur':
         return <Castle size={16} />;
       case 'ville':
         return <Building2 size={16} />;
+      case 'centre-savoir':
+        return <BookOpen size={16} />;
       case 'ruine':
         return <Flame size={16} />;
       default:
@@ -50,8 +54,14 @@ export const PoiList: React.FC<PoiListProps> = ({
             data-category={point.category}
           >
             <div className="poi-card-crest">
-              {point.sigilUrl ? (
-                <img src={point.sigilUrl} alt={point.house || point.name} className="sigil-thumbnail" />
+              {point.imageUrl || (point.sigilKey && HOUSE_SIGILS[point.sigilKey]) ? (
+                <img 
+                  src={point.imageUrl ? point.imageUrl : HOUSE_SIGILS[point.sigilKey!]} 
+                  alt={point.house || point.name} 
+                  className="sigil-thumbnail"
+                  referrerPolicy="no-referrer"
+                  style={{ objectFit: point.imageUrl ? 'cover' : undefined }}
+                />
               ) : (
                 <div className="sigil-fallback">
                   {getCategoryIcon(point.category)}
